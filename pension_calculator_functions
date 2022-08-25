@@ -12,20 +12,20 @@
                 $total_months = $request->total_months;//overall total monthly contributions by member
                 $averageTBY = $request->averageTBY;//Average three best years contributions by member
 
-                $retirement_age_months = $this->dateMonthsDifference($fbirth_date, $fretirement_date);
+                $retirement_age_months = dateMonthsDifference($fbirth_date, $fretirement_date);
                 $retirement_age_years = floor($retirement_age_months / 12);
 
                 if ($retirement_age_years < 55) {
                     $status = 'fail';
                     $msg = 'Your retirement of ' . $retirement_age_years . ' does not qualify for pension. The minimum age for pension is 55 years.';
-                    return $this->responseMsg($status, $msg);
+                    return responseMsg($status, $msg);
                 }
 
                 if ($retirement_age_years >= 55 && $retirement_age_years < 60) {
                     if ($hazardous == 'H') {
                         $ageReductionFactor = 1;
                     } else {
-                        $ageReductionFactor = $this->getEarlyRetirementReductionFactor($fbirth_date, $fretirement_date);
+                        $ageReductionFactor = getEarlyRetirementReductionFactor($fbirth_date, $fretirement_date);
                     }
                 } elseif ($retirement_age_years >= 60) {
                     $ageReductionFactor = 1;
@@ -37,19 +37,19 @@
                     $fbenefit_description = 'Full Pension';
                 }
 
-                $pensionRight = $this->pensionRight($total_months, $foption_status);
+                $pensionRight = pensionRight($total_months, $foption_status);
                 if ($pensionRight == 'error') {
                     $status = 'fail';
                     $msg = 'You do not have the minimum contributions to qualify for pension (ie PNDCL247 = 240, Act766 = 180)';
-                    return $this->responseMsg($status, $msg);
+                    return responseMsg($status, $msg);
                 }
 
-                $monthlyPension = $this->monthlyPension($averageTBY, $pensionRight, $ageReductionFactor);
+                $monthlyPension = monthlyPension($averageTBY, $pensionRight, $ageReductionFactor);
 
                 $annualPension = $monthlyPension * 12;
 
                 if ($foption_status == 'E' && $f25lumpsumOption == 'Y') {
-                    $flumpsum25_amount = $this->lumpsum25($monthlyPension);
+                    $flumpsum25_amount = lumpsum25($monthlyPension);
                     $residual_pension = 0.75 * $monthlyPension;
                 } else {
                     $flumpsum25_amount = 0;
@@ -60,7 +60,7 @@
 
                 $status = 'success';
                 $msg = 'Pension Computed Successfully';
-                return $this->responseMsg($status, $msg, $data);
+                return responseMsg($status, $msg, $data);
             }
 
 
@@ -83,7 +83,7 @@
 
         function getEarlyRetirementReductionFactor($date_of_birth, $retirement_date)//For those who retire before the retirement age of 60 years
             {     
-                $retirement_age_months=$this->dateMonthsDifference($date_of_birth,$retirement_date);
+                $retirement_age_months=dateMonthsDifference($date_of_birth,$retirement_date);
                 $retirement_age_years=floor($retirement_age_months/12);
                 
                 if($retirement_age_years<59)
@@ -144,11 +144,11 @@
                 
                 if($lodgement_date>'2019-06-30')
                 {
-                    $annuityFactor = $this->annuityFactorNew();
+                    $annuityFactor = annuityFactorNew();
                 }
                 else
                 {
-                    $annuityFactor = $this->annuityFactor();
+                    $annuityFactor = annuityFactor();
                 }
 
                 $LumpSum25 = 0.25 * $monthlyPension * $annuityFactor;
@@ -219,7 +219,7 @@
                     'status' => $status,
                     'msg' => $msg,
                     'data' => $data,
-                    'current_date' => $this->getDateTimeFormatted()
+                    'current_date' => getDateTimeFormatted()
                 ], $statusCode);
        
                 return $response;
